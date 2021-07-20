@@ -2,7 +2,18 @@
 
 using namespace std;
 
-void print_time_clock(chrono::steady_clock::time_point begin, chrono::steady_clock::time_point end, clock_t cl_begin, clock_t cl_end) {
+void print_chrono_ctime(chrono::steady_clock::time_point begin, chrono::steady_clock::time_point end, time_t t_begin, time_t t_end) {
+	long int diff = chrono::duration_cast<chrono::milliseconds>(end - begin).count();  int factor = 1000;
+	long int diff_copy = diff;
+	long int h = diff / 3600 / factor;	diff -= h * 3600 * factor;
+	long int m = diff / 60 / factor;	diff -= m * 60 * factor;
+	long int s = diff / factor;			diff -= s * factor;
+  long int ct = t_end - t_begin;
+	printf("\t- Time = %ldh %ldm %lds %ld\t(%ldms)\t\tcTime = %ldh %ldm %lds\t(%lds)\n",
+                      h,   m,   s, diff, diff_copy,    ct/3600, (ct%3600)/60, ct%60, ct);
+}
+
+void print_chrono_clock(chrono::steady_clock::time_point begin, chrono::steady_clock::time_point end, clock_t cl_begin, clock_t cl_end) {
 	long int diff = chrono::duration_cast<chrono::milliseconds>(end - begin).count();  int factor = 1000;
 	long int diff_copy = diff;
 	long int h = diff / 3600 / factor;	diff -= h * 3600 * factor;
@@ -13,7 +24,7 @@ void print_time_clock(chrono::steady_clock::time_point begin, chrono::steady_clo
 	printf("\t- Time = %ldh %ldm %lds %ld\t\tms=%ld\tclock:%ld/%ld = %ldms\n", h, m, s, diff, diff_copy, cl_hits, (long int) CLOCKS_PER_SEC, cl_ms);
 }
 
-void print_time(chrono::steady_clock::time_point begin, chrono::steady_clock::time_point end) {
+void print_chrono(chrono::steady_clock::time_point begin, chrono::steady_clock::time_point end) {
 	long int diff = chrono::duration_cast<chrono::milliseconds>(end - begin).count();  int factor = 1000;
 	long int diff_copy = diff;
 	long int h = diff / 3600 / factor;	diff -= h * 3600 * factor;
@@ -68,6 +79,6 @@ pair<ul,ul> random_pair(const ul &n) {
 // 	auto output = function(argc, argv);
 
 // 	chrono::steady_clock::time_point end = chrono::steady_clock::now();
-// 	print_time(begin, end);
+// 	print_chrono(begin, end);
 // 	return output;
 // }

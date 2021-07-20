@@ -30,6 +30,9 @@ Type `$ ./ord --help` for more information.
     -   `core+`, `core-`: k-core pealing using only out-edges (resp. in-edges)
     -   `icore`: inverted pealing, where nodes of higher degree are removed first
     -   `icore+`, `icore-`: inverted pealing, where nodes of higher out-degree (resp. in-degree) are removed first
+    -   `dfs`, `bfs`: graph traversal starting from the node with smallest id
+    -   `gorder`, `rcm`, `ldg`, modified `slashburn`, `minla`, `minloga` as described in [this paper](https://doi.org/10.5281/zenodo.4836230)
+    -   `trianglesdpp`, `trianglesdpm`: orderings obtained by greedy optimisation of sum d+d+ (resp. d+d-) for each node, which is the approximate complexity of specific triangle-counting algorithms
 
 #### Options
 -   `-o FILE`: output file in which the order will be printed (the new ID of the node with the old ID u is on line u)
@@ -64,6 +67,4 @@ Note that RANK should be the output of `ord` applied on dataset INPUT.
 
 Fabrice Lécuyer (fabrice.lecuyer@lip6.fr)
 
-Maximilien Danisch (<http://bit.ly/danisch>, maximilien.danisch@gmail.com)
-
-2020
+2021

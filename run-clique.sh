@@ -1,4 +1,5 @@
 #!/bin/bash
+# ./run-clique.sh ../datasets/net_friendster.txt friendster 3
 
 order=tmp-$2.txt
 if [ -f "$order" ]; then
@@ -49,23 +50,23 @@ gcc ../kCliqueListing/DDegree/DDegree.c -O9 -o ../kCliqueListing/DDegree/DDegree
 ../kCliqueListing/DDegree/DDegree $3 $1
 
 echo
-echo "Test with arboricity"
+echo "Test with arboricity: eliminated because it is too slow"
 echo "-------------------------"
-gcc ../kCliqueListing/Arboricity/Arboricity.c -O9 -o ../kCliqueListing/Arboricity/Arboricity
-../kCliqueListing/Arboricity/Arboricity $3 $1
+# gcc ../kCliqueListing/Arboricity/Arboricity.c -O9 -o ../kCliqueListing/Arboricity/Arboricity
+# ../kCliqueListing/Arboricity/Arboricity $3 $1
 
 echo
 
 if [ $3 == 3 ]; then
     echo
-    echo "Test with LDegree: impossible with this exact file format (n and m needed on line 1)"
+    echo "Test with LDegree"
     echo "-------------------------"
-    # g++ ../kCliqueListing/LD/LwithOrdering.cpp -std=c++11 -O3 -o ../kCliqueListing/LD/LD
-    # ../kCliqueListing/LD/LD $3 $1 1
-    # echo
-    # echo "Test with LDegree"
-    # echo "-------------------------"
-    # ../kCliqueListing/LD/LD $3 $1 2
+    g++ ../kCliqueListing/LD/LwithOrdering.cpp -std=c++11 -O3 -o ../kCliqueListing/LD/LD
+    ../kCliqueListing/LD/LD $3 $1 1
+    echo
+    echo "Test with LDegen"
+    echo "-------------------------"
+    ../kCliqueListing/LD/LD $3 $1 2
     # echo
     # echo "Test with LDPM"
     # echo "------------------------- TODO -------------------------"
