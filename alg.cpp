@@ -45,7 +45,7 @@ int main(int argc, char** argv){
       "bellman","diameter",
       "kcore","ds","dominatingset",
       "pr",
-      "uncut","triangles","trianglesdpp","trianglesdpm",
+      "uncut","triangles","trianglesdpp","trianglesdpm","cliques",
       "test"}, CLI::ignore_case));
   // app.add_flag("-A,--all", algo_all, "Execute all algorithms consecutively and save time measurements")->capture_default_str();
   app.add_option("-o,--output", output_file, "File in which to output time measurements")->capture_default_str();
@@ -81,7 +81,7 @@ int main(int argc, char** argv){
 
   srand (time(NULL));
 
-  if(algo_name == "triangles") { // uses Badjlist
+  if(algo_name == "triangles" or algo_name == "cliques") { // uses Badjlist
     Info("Converting to bidirected adjacency list")
     // vector<ul> rank = order_deg(h, /*DESC=*/true);
     // vector<ul> rank = order_identity(h.n);
@@ -96,14 +96,19 @@ int main(int argc, char** argv){
     Info("Neighbourhoods are " << (g.are_neighbours_sorted() ? "":"not ") << "sorted")
     // algo_kcore(g); TimeStep("kcore")
     triangle_complexities(g); TimeStep("t0")
-    //
-    // count_triangles_dpp(g); TimeStep("t1") TimeRecStep("t1", output)
-    // count_triangles_dmm(g); TimeStep("t2") TimeRecStep("t2", output)
-    count_triangles_dpm(g); TimeStep("t3") TimeRecStep("t3", output)
-    count_triangles_dichotomy(g); TimeStep("t4") TimeRecStep("t4", output)
-    // count_triangles_dpm_indep_vectint(g); TimeStep("t6") TimeRecStep("t6", output)
-    // count_triangles_dpm_indep(g); TimeStep("t5") TimeRecStep("t5", output)
-    // count_triangles_hash(g); TimeStep("t5")
+
+    if(algo_name == "triangles") {
+      // count_triangles_dpp(g); TimeStep("t1") TimeRecStep("t1", output)
+      // count_triangles_dmm(g); TimeStep("t2") TimeRecStep("t2", output)
+      count_triangles_dpm(g); TimeStep("t3") TimeRecStep("t3", output)
+      count_triangles_dichotomy(g); TimeStep("t4") TimeRecStep("t4", output)
+      // count_triangles_dpm_indep_vectint(g); TimeStep("t6") TimeRecStep("t6", output)
+      // count_triangles_dpm_indep(g); TimeStep("t5") TimeRecStep("t5", output)
+      // count_triangles_hash(g); TimeStep("t5")
+    }
+    else {
+      count_cliques_5(g); TimeStep("k5") TimeRecStep("k5", output)
+    }
   }
 
   else if(algo_name == "uncut" and !directed) {

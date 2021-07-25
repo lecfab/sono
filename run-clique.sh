@@ -1,7 +1,9 @@
 #!/bin/bash
 # ./run-clique.sh ../datasets/net_friendster.txt friendster 3
 
-order=tmp-$2.txt
+order=../tmp/$2-dpm-order.txt
+orderedges=../tmp/$2-dpm-edges.txt
+
 if [ -f "$order" ]; then
     echo "Optimised dpm already exists."
 else
@@ -74,7 +76,6 @@ if [ $3 == 3 ]; then
 
     echo "Test with my algos"
     echo "-------------------------"
-    orderedges=tmp-edges-$2.txt
     if [ -f "$orderedges" ]; then
         echo "Optimised dpm ORDER already exists."
     else

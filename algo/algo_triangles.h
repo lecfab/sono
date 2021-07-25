@@ -38,5 +38,6 @@ ul burden_periphery(const Badjlist &g);
 ul burden_permutation(const Adjlist &g);
 ul burden_permutation(const Badjlist &g);
 
+ull count_cliques_5(const Badjlist &g);
 
 #endif

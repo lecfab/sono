@@ -3,7 +3,7 @@ CC=g++ -std=c++14 #-fconcepts
 DEBUG?=0 # debug option
 
 ifeq ($(DEBUG), 1)
-	CFLAGS=-Og -Wextra -g3 -D DEBUG
+	CFLAGS=-Og -Wextra -g3 -D DEBUG # -fopenmp
 	o=debug.o
 else
 	CFLAGS=-Ofast -g #-Wall # https://cpluspluspedia.com/fr/tutorial/4708/compiler-et-construire # https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html

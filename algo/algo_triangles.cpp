@@ -76,10 +76,11 @@ void triangle_complexities(const Badjlist &g) {
   // Info("O(sum min(du-, dv+)) : "<< minmp << " \t| per edge: " << ((double) minmp)/m)
   Info("O(sum min(du-, dv-)) : "<< minmm << " \t| per edge: " << ((double) minmm)/m)
 
-  ull dpp = 0, dpm = 0, dmm = 0, dep = 0;
+  ull dpp = 0, dpm = 0, dmm = 0, dep = 0, dpm2 = 0;
   for(ul u=0; u<g.n; ++u) {
     dpp += g.get_degOut(u) * g.get_degOut(u);
     dpm += g.get_degOut(u) * g.get_degIn(u);
+    dpm2 += pow(g.get_degOut(u) * g.get_degIn(u), 2);
     // if(g.get_degOut(u) * g.get_degIn(u)) { // debug for bipartite graph
     //   cout << u << " "<<g.get_degOut(u) <<" "<< g.get_degIn(u)<<endl;
     //   cout << "OUT:\t";
@@ -97,6 +98,7 @@ void triangle_complexities(const Badjlist &g) {
   Info("O(sum d-²) : "<< dmm << " \t| per edge: " << ((double) dmm)/m)
   Info("O(sum d+d-) : "<< dpm << " \t| per edge: " << ((double) dpm)/m)
   Info("O(sum d*d+) : "<< dep << " \t| per edge: " << ((double) dep)/m)
+  Info("O(sum d+²d-²) : "<< dep << " \t| per edge: " << ((double) dpm2)/m)
 }
 
 ull count_triangles_hash(const Badjlist &g) {
@@ -285,4 +287,36 @@ ull count_triangles_dpp(const Badjlist &g) {
 ull count_triangles_dmm(const Badjlist &g) {
   Info("Counting triangles whith complexity O(sum d-²)")
   return count_triangles_bool(g, true, false);
+}
+
+ull count_cliques_5(const Badjlist &g) {
+  Info("Counting 5-cliques")
+  double m = g.e / g.edge_factor;
+
+  ull t = 0, c = 0;
+  vector<int> is_neighOut(g.n, 0);
+  for(ul u=0; u<g.n; ++u) {
+    for(auto &v : g.neighOut_iter(u)) is_neighOut[v] ++; // set array
+    for(auto &v : g.neighOut_iter(u)) {
+      for(auto &w : g.neighOut_iter(v)) is_neighOut[w] ++; // set array
+      for(auto &w : g.neighOut_iter(v)) {
+        if(is_neighOut[w] < 2) continue;
+        for(auto &x : g.neighOut_iter(w)) is_neighOut[x] ++; // set array
+        for(auto &x : g.neighOut_iter(w)) {
+          if(is_neighOut[x] < 3) continue;
+          for(auto &y : g.neighOut_iter(x)) {
+            c++;
+            if(is_neighOut[y] == 3) t++; // is neighbour of u, v, w (and x)
+          }
+        }
+        for(auto &x : g.neighOut_iter(w)) is_neighOut[x] --; // reset array
+
+      }
+      for(auto &w : g.neighOut_iter(v)) is_neighOut[w] --; // reset array
+    }
+    for(auto &v : g.neighOut_iter(u)) is_neighOut[v] --; // reset array
+  }
+  Info("Found 5-cliques: "<< t << " \t| millions: " << t/1000000)
+  Info("Complexity: "<< c << " \t| per edge: " << ((double) c) / m)
+  return t;
 }
