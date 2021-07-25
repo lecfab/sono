@@ -141,6 +141,7 @@ int main(int argc, char** argv) {
       else if(order_name == "trianglesdpp") rank = place_neighbour_dpp(*g); // place_neighbour_mindpp
       else if(order_name == "trianglesdpm") rank = place_neighbour_dpm(*g);
       else if(order_name == "trianglesdpm2") rank = place_neighbour_dpm2(*g);
+      // else if(order_name == "trianglesdpmN") rank = place_neighbour(*g);
 			else { Alert("Unknown order `" << order_name <<"`"); return 1; }
       // delete g;
     }

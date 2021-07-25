@@ -98,7 +98,7 @@ void triangle_complexities(const Badjlist &g) {
   Info("O(sum d-²) : "<< dmm << " \t| per edge: " << ((double) dmm)/m)
   Info("O(sum d+d-) : "<< dpm << " \t| per edge: " << ((double) dpm)/m)
   Info("O(sum d*d+) : "<< dep << " \t| per edge: " << ((double) dep)/m)
-  Info("O(sum d+²d-²) : "<< dep << " \t| per edge: " << ((double) dpm2)/m)
+  Info("O(sum d+²d-²) : "<< dpm2 << " \t| per edge: " << ((double) dpm2)/m)
 }
 
 ull count_triangles_hash(const Badjlist &g) {
@@ -289,6 +289,63 @@ ull count_triangles_dmm(const Badjlist &g) {
   return count_triangles_bool(g, true, false);
 }
 
+ull count_cliques(const Badjlist &g, ul k) {
+  Info("Counting cliques for k="<< k)
+  double m = g.e / g.edge_factor;
+
+  ull t = 0, c = 0;
+  vector<ul> nodes; nodes.reserve(g.n);
+  for(ul u=0; u<g.n; ++u) nodes.push_back(u);
+  nodes.push_back(g.n + 2); // useless node added
+  vector<ul> parents(g.n, 0);
+
+  vector<const ul*> iters_end; iters_end.reserve(k);
+  vector<const ul*> iters; iters.reserve(k);
+  iters.push_back(&nodes[0]);
+  iters_end.push_back(&nodes.back());
+
+  while(true) {
+    // for(auto &uu: iters) cout << *uu <<"\t"; cout << endl;
+
+    if(iters.back() == iters_end.back()) {
+      Debug("No more neighbours for floor "<< iters.size())
+      if(iters.size() == 1) break;
+      iters.pop_back();
+      iters_end.pop_back();
+      for(auto &w : g.neighOut_iter(*iters.back())) parents[w] --;
+      ++iters.back();
+    }
+    else if(iters.size() < k-1) {
+      ul v  = *iters.back();
+      // Debug("New floor above "<< iters.size() << " based on "<<v)
+      if(parents[v] < iters.size()-1) { // not all previous nodes are parents
+        Debug("Unsatisfying: "<<parents[v])
+        ++iters.back();
+        continue;
+      }
+      for(auto &w : g.neighOut_iter(v)) parents[w] ++;
+      iters.push_back(g.neighOut_beg(v));
+      iters_end.push_back(g.neighOut_end(v));
+    }
+    else {
+      ul x = *iters.back();
+      ++iters.back();
+      if(parents[x] < iters.size()-1) continue;
+      for(auto &y : g.neighOut_iter(x)) {
+        c++;
+        if(parents[y] == iters.size()-1) {
+          t++; // is neighbour of u, v, w (and x)
+          // Info(*iters[0]<<" "<<*iters[1]<<" "<<*iters[2]<<" "<<*iters[3]<<" "<<y)
+          if(t > 10000000000) return t;
+        }
+      }
+    }
+  }
+  Info("Found "<<k<<"-cliques: "<< t << " \t| millions: " << t/1000000)
+  Info("Complexity: "<< c << " \t| per edge: " << ((double) c) / m)
+  return t;
+}
+
 ull count_cliques_5(const Badjlist &g) {
   Info("Counting 5-cliques")
   double m = g.e / g.edge_factor;
@@ -306,7 +363,11 @@ ull count_cliques_5(const Badjlist &g) {
           if(is_neighOut[x] < 3) continue;
           for(auto &y : g.neighOut_iter(x)) {
             c++;
-            if(is_neighOut[y] == 3) t++; // is neighbour of u, v, w (and x)
+            if(is_neighOut[y] == 3) {
+              t++; // is neighbour of u, v, w (and x)
+              // Info(u<<" "<<v<<" "<<w<<" "<<x<<" "<<y)
+              if(t > 10000000000) return t;
+            }
           }
         }
         for(auto &x : g.neighOut_iter(w)) is_neighOut[x] --; // reset array
