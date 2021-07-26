@@ -414,7 +414,7 @@ ull count_cliques_parallel_edges(const Badjlist &g, const Edgelist &h, ul k, int
   {
     vector<ul> parents(g.n, 0);
     #pragma omp for schedule(dynamic, 1)
-    for(auto &e: h.edges) {
+    for(auto &e : h.edges) {
       ul u = e.first, v = e.second;
       if(g.get_degOut(u) > g.get_degOut(v)) u = e.second, v = e.first;
       for(auto &w : g.neighOut_iter(u)) parents[w] ++;
