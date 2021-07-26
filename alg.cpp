@@ -35,7 +35,7 @@ int main(int argc, char** argv){
   CLI::App app{"Execute various algorithms on a given graph."};
 
   string filename, algo_name="no", output_file="";
-  bool directed, algo_all=false; int attempts=1;
+  bool directed, algo_all=false; int attempts=1; int number=0;
   app.add_option("file", filename, "Text file: list of `a b` edges with nodes IDs ranging from 0 to N-1")->required();
   app.add_flag("-d,!-u,--directed,!--undirected", directed, "Specify if the graph is directed or undirected; multiple edges are not accepted");
   app.add_option("-a,--algo", algo_name, "Algorithm to execute on the graph")
@@ -50,6 +50,7 @@ int main(int argc, char** argv){
   // app.add_flag("-A,--all", algo_all, "Execute all algorithms consecutively and save time measurements")->capture_default_str();
   app.add_option("-o,--output", output_file, "File in which to output time measurements")->capture_default_str();
   app.add_option("-l,--loops", attempts, "Number of attempts for random algorithms")->capture_default_str();
+  app.add_option("-n", number, "Numeric parameter used in different orders")->capture_default_str();
 
   CLI11_PARSE(app, argc, argv);
   ofstream output(output_file);
@@ -108,8 +109,13 @@ int main(int argc, char** argv){
       // count_triangles_hash(g); TimeStep("t5")
     }
     else {
-      count_cliques_5(g); TimeStep("k5") TimeRecStep("k5", output)
-      count_cliques(g, 5); TimeStep("k5*") TimeRecStep("k5*", output)
+      if(number == 0) number = 5;
+      if(number == 5) { count_cliques_5(g); TimeStep("k5") TimeRecStep("k5", output) }
+      count_cliques(g, number); TimeStep("ki") TimeRecStep("ki", output)
+      count_cliques_parallel(g, number, 8); TimeStep("pn8") TimeRecStep("pn8", output)
+      count_cliques_parallel_edges(g, h, number, 8); TimeStep("pe8") TimeRecStep("pe8", output)
+      count_cliques_parallel(g, number, 16); TimeStep("pn16") TimeRecStep("pn16", output)
+      count_cliques_parallel_edges(g, h, number, 16); TimeStep("pe16") TimeRecStep("pe16", output)
     }
   }
 

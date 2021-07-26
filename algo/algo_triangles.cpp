@@ -7,6 +7,7 @@
 #include "../utils/adjlist.h"
 #include "../utils/edgelist.h"
 #include <iomanip>
+#include <omp.h>
 
 using namespace std;
 
@@ -63,7 +64,7 @@ ul burden_permutation(const Badjlist &g) {
 
 void triangle_complexities(const Badjlist &g) {
   double m = g.e / g.edge_factor;
-  ull minpp = 0, minpm = 0, minmp = 0, minmm = 0;
+  ull minpp = 0, minpm = 0/*, minmp = 0*/, minmm = 0;
   for(ul u=0; u<g.n; ++u)
     for(auto &v : g.neighOut_iter(u)) {
       minpp += min(g.get_degOut(u), g.get_degOut(v));
@@ -336,11 +337,131 @@ ull count_cliques(const Badjlist &g, ul k) {
         if(parents[y] == iters.size()-1) {
           t++; // is neighbour of u, v, w (and x)
           // Info(*iters[0]<<" "<<*iters[1]<<" "<<*iters[2]<<" "<<*iters[3]<<" "<<y)
-          if(t > 10000000000) return t;
+          // if(t > 1000000000) return t;
         }
       }
     }
   }
+  Info("Found "<<k<<"-cliques: "<< t << " \t| millions: " << t/1000000)
+  Info("Complexity: "<< c << " \t| per edge: " << ((double) c) / m)
+  return t;
+}
+ull count_cliques_parallel(const Badjlist &g, ul k, int p) {
+  omp_set_num_threads(p);
+  Info("Counting cliques for k="<< k<<" with threads "<<p)
+  double m = g.e / g.edge_factor;
+
+  ull t = 0, c = 0;
+
+  #pragma omp parallel reduction(+ : t, c)
+  {
+    vector<ul> parents(g.n, 0);
+    #pragma omp for schedule(dynamic, 1)
+    for(ul u=0; u<g.n; ++u) {
+      for(auto &w : g.neighOut_iter(u))
+        parents[w] ++;
+      vector<const ul*> iters_end; iters_end.reserve(k-1);
+      vector<const ul*> iters; iters.reserve(k-1);
+      iters.push_back(g.neighOut_beg(u));
+      iters_end.push_back(g.neighOut_end(u));
+      while(true) {
+        if(iters.back() == iters_end.back()) {
+          // Debug("No more neighbours for floor "<< iters.size())
+          if(iters.size() == 1) break;
+          iters.pop_back();
+          iters_end.pop_back();
+          for(auto &w : g.neighOut_iter(*iters.back())) parents[w] --;
+          ++iters.back();
+        }
+        else if(iters.size() < k-2) {
+          ul v  = *iters.back();
+          if(parents[v] < iters.size()) { // not all previous nodes are parents
+            // Debug("Unsatisfying: "<<parents[v])
+            ++iters.back();
+            continue;
+          }
+          for(auto &w : g.neighOut_iter(v)) parents[w] ++;
+          iters.push_back(g.neighOut_beg(v));
+          iters_end.push_back(g.neighOut_end(v));
+        }
+        else {
+          ul x = *iters.back();
+          ++iters.back();
+          if(parents[x] < iters.size()) continue;
+          for(auto &y : g.neighOut_iter(x)) {
+            c++;
+            if(parents[y] == iters.size()) {
+              t++; // is neighbour of u, v, w (and x)
+              // Info(u<<" "<<*iters[0]<<" "<<*iters[1]<<" "<<x<<" "<<y)
+            }
+          }
+        }
+      }
+      for(auto &w : g.neighOut_iter(u)) parents[w] --;
+    }
+  }
+  Info("Found "<<k<<"-cliques: "<< t << " \t| millions: " << t/1000000)
+  Info("Complexity: "<< c << " \t| per edge: " << ((double) c) / m)
+  return t;
+}
+ull count_cliques_parallel_edges(const Badjlist &g, const Edgelist &h, ul k, int p) {
+  omp_set_num_threads(p);
+  Info("Counting cliques for k="<< k<<" with threads "<<p)
+  double m = g.e / g.edge_factor;
+
+  ull t = 0, c = 0;
+  #pragma omp parallel reduction(+ : t, c)
+  {
+    vector<ul> parents(g.n, 0);
+    #pragma omp for schedule(dynamic, 1)
+    for(auto &e: h.edges) {
+      ul u = e.first, v = e.second;
+      if(g.get_degOut(u) > g.get_degOut(v)) u = e.second, v = e.first;
+      for(auto &w : g.neighOut_iter(u)) parents[w] ++;
+      for(auto &w : g.neighOut_iter(v)) parents[w] ++;
+      vector<const ul*> iters_end; iters_end.reserve(k-2);
+      vector<const ul*> iters; iters.reserve(k-2);
+      iters.push_back(g.neighOut_beg(u));
+      iters_end.push_back(g.neighOut_end(u));
+      while(true) {
+        if(iters.back() == iters_end.back()) {
+          // Debug("No more neighbours for floor "<< iters.size())
+          if(iters.size() == 1) break;
+          iters.pop_back();
+          iters_end.pop_back();
+          for(auto &w : g.neighOut_iter(*iters.back())) parents[w] --;
+          ++iters.back();
+        }
+        else if(iters.size() < k-3) {
+          ul v  = *iters.back();
+          if(parents[v] < iters.size()+1) { // not all previous nodes are parents
+            // Debug("Unsatisfying: "<<parents[v])
+            ++iters.back();
+            continue;
+          }
+          for(auto &w : g.neighOut_iter(v)) parents[w] ++;
+          iters.push_back(g.neighOut_beg(v));
+          iters_end.push_back(g.neighOut_end(v));
+        }
+        else {
+          ul x = *iters.back();
+          ++iters.back();
+          if(parents[x] < iters.size()+1) continue;
+          for(auto &y : g.neighOut_iter(x)) {
+            c++;
+            if(parents[y] == iters.size()+1) {
+              t++; // is neighbour of u, v, w (and x)
+              // Info(u<<" "<<*iters[0]<<" "<<*iters[1]<<" "<<x<<" "<<y)
+            }
+          }
+        }
+      }
+      for(auto &w : g.neighOut_iter(u)) parents[w] --;
+      for(auto &w : g.neighOut_iter(v)) parents[w] --;
+    }
+  }
+
+
   Info("Found "<<k<<"-cliques: "<< t << " \t| millions: " << t/1000000)
   Info("Complexity: "<< c << " \t| per edge: " << ((double) c) / m)
   return t;
@@ -366,7 +487,7 @@ ull count_cliques_5(const Badjlist &g) {
             if(is_neighOut[y] == 3) {
               t++; // is neighbour of u, v, w (and x)
               // Info(u<<" "<<v<<" "<<w<<" "<<x<<" "<<y)
-              if(t > 10000000000) return t;
+              // if(t > 1000000000) return t;
             }
           }
         }

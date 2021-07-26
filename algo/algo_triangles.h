@@ -2,6 +2,7 @@
 #define ALGO_TRIANGLES_H
 
 #include "../utils/tools.h"
+struct Edgelist;
 struct Adjlist;
 struct Badjlist;
 
@@ -39,6 +40,8 @@ ul burden_permutation(const Adjlist &g);
 ul burden_permutation(const Badjlist &g);
 
 ull count_cliques(const Badjlist &g, ul k);
+ull count_cliques_parallel(const Badjlist &g, ul k, int p);
+ull count_cliques_parallel_edges(const Badjlist &g, const Edgelist &h, ul k, int p);
 ull count_cliques_5(const Badjlist &g);
 
 #endif
