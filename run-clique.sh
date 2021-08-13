@@ -26,15 +26,15 @@ else
 fi
 
 if [ -f "$orderdpm2" ]; then
-    echo "Order dpm already exists."
+    echo "Order dpm2 already exists."
 else
-    echo "Optimising dpm"
+    echo "Optimising dpm2"
     ./ord $1 trianglesdpm2 -u -o $orderdpm2
 fi
 if [ -f "$edgesdpm2" ]; then
-    echo "Edges dpm already exists."
+    echo "Edges dpm2 already exists."
 else
-    echo "Creating dpm edgelist"
+    echo "Creating dpm2 edgelist"
     ./rankedges $1 $orderdpm2 $edgesdpm2 -u
 fi
 echo "- - - - - - - - - - - - -"
@@ -94,10 +94,10 @@ gcc ../kCliqueListing/Degen/kClist.c -O9 -o ../kCliqueListing/Degen/kClist
 
 
 
-echo
-echo "Test with kiteratif (original)"
-echo "-------------------------"
-./alg $1 -a cliques -u -n $3
+# echo
+# echo "Test with kiteratif (original)"
+# echo "-------------------------"
+# ./alg $1 -a cliques -u -n $3
 
 echo
 echo "Test with kiteratif (dpm)"

@@ -111,11 +111,14 @@ int main(int argc, char** argv){
     else {
       if(number == 0) number = 5;
       if(number == 5) { count_cliques_5(g); TimeStep("k5") TimeRecStep("k5", output) }
+      if(number == 5) { count_cliques_5_(g); TimeStep("k5_") TimeRecStep("k5_", output) }
       count_cliques(g, number); TimeStep("ki") TimeRecStep("ki", output)
-      count_cliques_parallel(g, number, 8); TimeStep("pn8") TimeRecStep("pn8", output)
-      count_cliques_parallel_edges(g, h, number, 8); TimeStep("pe8") TimeRecStep("pe8", output)
-      count_cliques_parallel(g, number, 16); TimeStep("pn16") TimeRecStep("pn16", output)
-      count_cliques_parallel_edges(g, h, number, 16); TimeStep("pe16") TimeRecStep("pe16", output)
+      count_cliques_parallel_(g, number, 1); TimeStep("ki_") TimeRecStep("ki_", output)
+      // count_cliques_parallel(g, number, 8); TimeStep("pn8") TimeRecStep("pn8", output)
+      // count_cliques_parallel_(g, number, 8); TimeStep("pn8_") TimeRecStep("pn8_", output)
+      // count_cliques_parallel_edges(g, h, number, 8); TimeStep("pe8") TimeRecStep("pe8", output)
+      // count_cliques_parallel(g, number, 16); TimeStep("pn16") TimeRecStep("pn16", output)
+      // count_cliques_parallel_edges(g, h, number, 16); TimeStep("pe16") TimeRecStep("pe16", output)
     }
   }
 

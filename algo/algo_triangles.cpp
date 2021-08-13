@@ -104,7 +104,7 @@ void triangle_complexities(const Badjlist &g) {
 
 ull count_triangles_hash(const Badjlist &g) {
   Info("Counting triangles with hash complexity O(sum min(du+, dv+))")
-
+  double m = g.e / g.edge_factor;
   unordered_set<edge,pair_hash> edges; edges.reserve(g.e);
   // set<edge> edges;
   // unordered_set<ull> edges;
@@ -139,8 +139,8 @@ ull count_triangles_hash(const Badjlist &g) {
       }
     }
   }
-  Info("Found triangles: "<< t << " \t| millions: " << t/1000000)
-  Info("Complexity: "<< c << " \t| per edge: " << ((double )c)/((double) g.e))
+  Info("Found triangles: "<< t << " \t| per edge: " << ((double) t) / m)
+  Info("Complexity: "<< c << " \t| per edge: " << ((double) c) / m)
   return t;
 }
 
@@ -196,7 +196,7 @@ ull count_triangles_dichotomy(const Badjlist &g) {
     }
     for(auto &v : g.neighOut_iter(u)) is_neighOut[v] = false; // reset array
   }
-  Info("Found triangles: "<< t << "\t| millions: " << t/1000000)
+  Info("Found triangles: "<< t << "\t| per edge: " << ((double) t) / m)
   Info("Complexity: "<< c << " \t| per edge: " << ((double) c) / m)
   Info("Complexit2: "<< c2 << " \t| per edge: " << ((double) c2) / m)
   Info("repartition: "<< left << " \t|    " << right)
@@ -224,7 +224,7 @@ ull count_triangles_bool(const Badjlist &g, bool uOut_iter, bool vOut_iter) {
 
     for(auto &v : g.neighOut_iter(u)) is_neighOut[v] = false; // reset array
   }
-  Info("Found triangles: "<< t << " \t| millions: " << t/1000000)
+  Info("Found triangles: "<< t << " \t| per edge: " << ((double) t) / m)
   Info("Complexity: "<< c << " \t| per edge: " << ((double) c) / m)
   return t;
 }
@@ -247,7 +247,7 @@ ull count_triangles_dpm_indep(const Badjlist &g) {
 
     for(auto &v : g.neighOut_iter(u)) is_neighOut[v] = false; // reset array
   }
-  Info("Found triangles: "<< t << " \t| millions: " << t/1000000)
+  Info("Found triangles: "<< t << " \t| per edge: " << ((double) t) / m)
   Info("Complexity: "<< c << " \t| per edge: " << ((double) c) / m)
   return t;
 }
@@ -270,7 +270,7 @@ ull count_triangles_dpm_indep_vectint(const Badjlist &g) {
 
     for(auto &v : g.neighOut_iter(u)) is_neighOut[v] = false; // reset array
   }
-  Info("Found triangles: "<< t << " \t| millions: " << t/1000000)
+  Info("Found triangles: "<< t << " \t| per edge: " << ((double) t) / m)
   Info("Complexity: "<< c << " \t| per edge: " << ((double) c) / m)
   return t;
 }
@@ -290,62 +290,63 @@ ull count_triangles_dmm(const Badjlist &g) {
   return count_triangles_bool(g, true, false);
 }
 
-ull count_cliques(const Badjlist &g, ul k) {
-  Info("Counting cliques for k="<< k)
-  double m = g.e / g.edge_factor;
-
-  ull t = 0, c = 0;
-  vector<ul> nodes; nodes.reserve(g.n);
-  for(ul u=0; u<g.n; ++u) nodes.push_back(u);
-  nodes.push_back(g.n + 2); // useless node added
-  vector<ul> parents(g.n, 0);
-
-  vector<const ul*> iters_end; iters_end.reserve(k);
-  vector<const ul*> iters; iters.reserve(k);
-  iters.push_back(&nodes[0]);
-  iters_end.push_back(&nodes.back());
-
-  while(true) {
-    // for(auto &uu: iters) cout << *uu <<"\t"; cout << endl;
-
-    if(iters.back() == iters_end.back()) {
-      Debug("No more neighbours for floor "<< iters.size())
-      if(iters.size() == 1) break;
-      iters.pop_back();
-      iters_end.pop_back();
-      for(auto &w : g.neighOut_iter(*iters.back())) parents[w] --;
-      ++iters.back();
-    }
-    else if(iters.size() < k-1) {
-      ul v  = *iters.back();
-      // Debug("New floor above "<< iters.size() << " based on "<<v)
-      if(parents[v] < iters.size()-1) { // not all previous nodes are parents
-        Debug("Unsatisfying: "<<parents[v])
-        ++iters.back();
-        continue;
-      }
-      for(auto &w : g.neighOut_iter(v)) parents[w] ++;
-      iters.push_back(g.neighOut_beg(v));
-      iters_end.push_back(g.neighOut_end(v));
-    }
-    else {
-      ul x = *iters.back();
-      ++iters.back();
-      if(parents[x] < iters.size()-1) continue;
-      for(auto &y : g.neighOut_iter(x)) {
-        c++;
-        if(parents[y] == iters.size()-1) {
-          t++; // is neighbour of u, v, w (and x)
-          // Info(*iters[0]<<" "<<*iters[1]<<" "<<*iters[2]<<" "<<*iters[3]<<" "<<y)
-          // if(t > 1000000000) return t;
-        }
-      }
-    }
-  }
-  Info("Found "<<k<<"-cliques: "<< t << " \t| millions: " << t/1000000)
-  Info("Complexity: "<< c << " \t| per edge: " << ((double) c) / m)
-  return t;
-}
+// ull count_cliques(const Badjlist &g, ul k) {
+//   Info("Counting cliques for k="<< k)
+//   double m = g.e / g.edge_factor;
+//
+//   ull t = 0, c = 0;
+//   vector<ul> nodes; nodes.reserve(g.n);
+//   for(ul u=0; u<g.n; ++u) nodes.push_back(u);
+//   nodes.push_back(g.n + 2); // useless node added
+//   vector<ul> parents(g.n, 0);
+//
+//   vector<const ul*> iters_end; iters_end.reserve(k);
+//   vector<const ul*> iters; iters.reserve(k);
+//   iters.push_back(&nodes[0]);
+//   iters_end.push_back(&nodes.back());
+//
+//   while(true) {
+//     // for(auto &uu: iters) cout << *uu <<"\t"; cout << endl;
+//
+//     if(iters.back() == iters_end.back()) {
+//       Debug("No more neighbours for floor "<< iters.size())
+//       if(iters.size() == 1) break;
+//       iters.pop_back();
+//       iters_end.pop_back();
+//       for(auto &w : g.neighOut_iter(*iters.back())) parents[w] --;
+//       ++iters.back();
+//     }
+//     else if(iters.size() < k-1) {
+//       ul v  = *iters.back();
+//       // Debug("New floor above "<< iters.size() << " based on "<<v)
+//       if(parents[v] < iters.size()-1) { // not all previous nodes are parents
+//         Debug("Unsatisfying: "<<parents[v])
+//         ++iters.back();
+//         continue;
+//       }
+//       for(auto &w : g.neighOut_iter(v)) parents[w] ++;
+//       iters.push_back(g.neighOut_beg(v));
+//       iters_end.push_back(g.neighOut_end(v));
+//     }
+//     else {
+//       ul x = *iters.back();
+//       ++iters.back();
+//       if(parents[x] < iters.size()-1) continue;
+//       for(auto &y : g.neighOut_iter(x)) {
+//         c++;
+//         if(parents[y] == iters.size()-1) {
+//           t++; // is neighbour of u, v, w (and x)
+//           // Info(*iters[0]<<" "<<*iters[1]<<" "<<*iters[2]<<" "<<*iters[3]<<" "<<y)
+//           // if(t > 1000000000) return t;
+//         }
+//       }
+//     }
+//   }
+//   Info("Found "<<k<<"-cliques: "<< t << " \t| per edge: " << ((double) t) / m)
+//   Info("Complexity: "<< c << " \t| per edge: " << ((double) c) / m)
+//   return t;
+// }
+ull count_cliques(const Badjlist &g, ul k) { return count_cliques_parallel(g, k, 1); }
 ull count_cliques_parallel(const Badjlist &g, ul k, int p) {
   omp_set_num_threads(p);
   Info("Counting cliques for k="<< k<<" with threads "<<p)
@@ -400,7 +401,7 @@ ull count_cliques_parallel(const Badjlist &g, ul k, int p) {
       for(auto &w : g.neighOut_iter(u)) parents[w] --;
     }
   }
-  Info("Found "<<k<<"-cliques: "<< t << " \t| millions: " << t/1000000)
+  Info("Found "<<k<<"-cliques: "<< t << " \t| per edge: " << ((double) t) / m)
   Info("Complexity: "<< c << " \t| per edge: " << ((double) c) / m)
   return t;
 }
@@ -462,43 +463,262 @@ ull count_cliques_parallel_edges(const Badjlist &g, const Edgelist &h, ul k, int
   }
 
 
-  Info("Found "<<k<<"-cliques: "<< t << " \t| millions: " << t/1000000)
+  Info("Found "<<k<<"-cliques: "<< t << " \t| per edge: " << ((double) t) / m)
   Info("Complexity: "<< c << " \t| per edge: " << ((double) c) / m)
   return t;
 }
 
-ull count_cliques_5(const Badjlist &g) {
-  Info("Counting 5-cliques")
+
+
+
+
+
+
+
+//---------------
+void set_array(Badjlist &g, vector<ul> &parents, vector<vector<ul>> &deg_level, const ul &u, int l) {
+  for(auto v=g.neigh_beg(u); v<g.neigh_beg(u)+deg_level[l-1][u]; ++v) parents[*v] ++;
+  for(auto v=g.neigh_beg(u); v<g.neigh_beg(u)+deg_level[l-1][u]; ++v) {
+    deg_level[l][*v] = 0;
+    for(auto w=g.neigh_beg(*v); w<g.neigh_beg(*v)+deg_level[l-1][*v]; ++w) {
+      if(parents[*w] >= l) { // if w is among the neighbours of u, put it at the beginning
+        auto x = g.neigh_beg(*v) + deg_level[l][*v]; // neigh with which to swap w
+        swap(*w, *x);
+        deg_level[l][*v] ++;
+      }
+    }
+  }
+}
+void reset_array(Badjlist &g, vector<ul> &parents, vector<vector<ul>> &deg_level, const ul &u, int l) {
+  for(auto v=g.neigh_beg(u); v<g.neigh_beg(u)+deg_level[l-1][u]; ++v) parents[*v] --;
+}
+
+ull count_cliques_parallel_(Badjlist &g, ul k, int p) {
+  omp_set_num_threads(p);
+  Info("Counting cliques for k="<< k<<" with  "<<p<<"-threads modified")
+  double m = g.e / g.edge_factor;
+
+  ull t = 0, c = 0;
+
+  #pragma omp parallel reduction(+ : t, c)
+  {
+    vector<ul> parents(g.n, 0);
+    vector<vector<ul>> deg_level(k-1);
+    for(ul l=0; l<k-1; ++l) deg_level[l].reserve(g.n);
+    for(ul u=0; u<g.n; ++u) deg_level[0][u] = g.get_degOut(u);
+
+    #pragma omp for schedule(dynamic, 1)
+    for(ul u=0; u<g.n; ++u) {
+      ul l = 0;
+      if(g.get_degOut(u) < k-1) continue;
+      set_array(g, parents, deg_level, u, 1);
+      vector<const ul*> iters_end; iters_end.reserve(k-1);
+      vector<const ul*> iters; iters.reserve(k-1);
+      iters.push_back(g.neighOut_beg(u));
+      iters_end.push_back(g.neighOut_end(u));
+      while(true) {
+        l = iters.size();
+        if(iters.back() == iters_end.back()) {
+          // Debug("No more neighbours for floor "<< l)
+          if(l == 1) break;
+          iters.pop_back();
+          iters_end.pop_back();
+          reset_array(g, parents, deg_level, *iters.back(), l);
+          ++iters.back();
+        }
+        else if(l < k-2) {
+          ul v  = *iters.back();
+          if(deg_level[l][v] < k-1-l) { // not enough out neighbours
+            ++iters.back();
+            continue;
+          }
+          set_array(g, parents, deg_level, v, l+1);
+          iters.push_back(g.neighOut_beg(v));
+          iters_end.push_back(g.neighOut_beg(v)+deg_level[l][v]);
+        }
+        else {
+          ul x = *iters.back();
+          ++iters.back();
+          for(auto y=g.neigh_beg(x); y<g.neigh_beg(x)+deg_level[l][x]; ++y) {
+            c++;
+            t++;
+          }
+        }
+      }
+      reset_array(g, parents, deg_level, u, 1);
+    }
+  }
+  Info("Found "<<k<<"-cliques: "<< t << " \t| per edge: " << ((double) t) / m)
+  Info("Complexity: "<< c << " \t| per edge: " << ((double) c) / m)
+  return t;
+}
+//---------------
+
+void neigh_subset(Badjlist &g, vector<int> &is_neighOut, vector<ul> &old_deg, vector<ul> &new_deg, ul &u, ul l) {
+  // for(auto v=g.neigh_beg(u); v<g.neigh_beg(u)+old_deg[u]; ++v) is_neighOut[*v] ++; // set array
+  for(auto v=g.neigh_beg(u); v<g.neigh_beg(u)+old_deg[u]; ++v) {
+    new_deg[*v] = 0;
+    for(auto w=g.neigh_beg(*v); w<g.neigh_beg(*v)+old_deg[*v]; ++w) {
+      if(is_neighOut[*w] >= l) { // if w is among the neighbours of u, put it at the beginning
+        auto x = g.neigh_beg(*v) + new_deg[*v]; // neigh with which to swap w
+        // Info("swap "<<*x<<" "<<*w)
+        swap(*w, *x);
+        new_deg[*v] ++;
+      }
+    }
+  }
+}
+
+void count_rec(Badjlist &g, vector<int> &is_neighOut, vector<vector<ul>> &deg_level, ul &u, ull &t, ull &c, const int k, int l) {
+  if(l == k-1) {
+    for(auto y=g.neigh_beg(u); y<g.neigh_beg(u)+deg_level[k-2][u]; ++y) {
+      c++;
+      t++;
+    }
+    return;
+  }
+  if(deg_level[l-1][u] < k-l) return;
+  for(auto v=g.neigh_beg(u); v<g.neigh_beg(u)+deg_level[l-1][u]; ++v) is_neighOut[*v] ++;
+  neigh_subset(g, is_neighOut, deg_level[l-1], deg_level[l], u, l);
+  for(auto v=g.neigh_beg(u); v<g.neigh_beg(u)+deg_level[l-1][u]; ++v)
+    count_rec(g, is_neighOut, deg_level, *v, t, c, k, l+1);
+  for(auto v=g.neigh_beg(u); v<g.neigh_beg(u)+deg_level[l-1][u]; ++v) is_neighOut[*v] --;
+}
+
+ull count_cliques_5_(Badjlist &g) {
+  Info("Counting 5-cliques with recursion")
   double m = g.e / g.edge_factor;
 
   ull t = 0, c = 0;
   vector<int> is_neighOut(g.n, 0);
-  for(ul u=0; u<g.n; ++u) {
-    for(auto &v : g.neighOut_iter(u)) is_neighOut[v] ++; // set array
-    for(auto &v : g.neighOut_iter(u)) {
-      for(auto &w : g.neighOut_iter(v)) is_neighOut[w] ++; // set array
-      for(auto &w : g.neighOut_iter(v)) {
-        if(is_neighOut[w] < 2) continue;
-        for(auto &x : g.neighOut_iter(w)) is_neighOut[x] ++; // set array
-        for(auto &x : g.neighOut_iter(w)) {
-          if(is_neighOut[x] < 3) continue;
-          for(auto &y : g.neighOut_iter(x)) {
-            c++;
-            if(is_neighOut[y] == 3) {
-              t++; // is neighbour of u, v, w (and x)
-              // Info(u<<" "<<v<<" "<<w<<" "<<x<<" "<<y)
-              // if(t > 1000000000) return t;
-            }
-          }
-        }
-        for(auto &x : g.neighOut_iter(w)) is_neighOut[x] --; // reset array
+  vector<vector<ul>> deg_level(5-1);
+  for(int l=0; l<5-1; ++l) deg_level[l].reserve(g.n);
+  for(ul u=0; u<g.n; ++u) deg_level[0][u] = g.get_degOut(u);
 
-      }
-      for(auto &w : g.neighOut_iter(v)) is_neighOut[w] --; // reset array
-    }
-    for(auto &v : g.neighOut_iter(u)) is_neighOut[v] --; // reset array
+  for(ul u=0; u<g.n; ++u) {
+    count_rec(g, is_neighOut, deg_level, u, t, c, 5, 1);
   }
-  Info("Found 5-cliques: "<< t << " \t| millions: " << t/1000000)
+  Info("Found 5-cliques: "<< t << " \t| per edge: " << ((double) t) / m)
   Info("Complexity: "<< c << " \t| per edge: " << ((double) c) / m)
   return t;
 }
+
+
+
+#define Keep(u, v, deg_level, l, inner) {\
+  if(deg_level[l-1][u] < 5-l) continue;\
+  for(auto v=g.neigh_beg(u); v<g.neigh_beg(u)+deg_level[l-1][u]; ++v) is_neighOut[*v] ++;\
+  neigh_subset(g, is_neighOut, deg_level[l-1], deg_level[l], u, l);\
+  for(auto v=g.neigh_beg(u); v<g.neigh_beg(u)+deg_level[l-1][u]; ++v) {\
+    inner\
+  }\
+  for(auto v=g.neigh_beg(u); v<g.neigh_beg(u)+deg_level[l-1][u]; ++v) is_neighOut[*v] --; }
+
+ull count_cliques_5(Badjlist &g) {
+  Info("Counting 5-cliques with #macro")
+  double m = g.e / g.edge_factor;
+
+  ull t = 0, c = 0;
+  vector<int> is_neighOut(g.n, 0);
+  vector<vector<ul>> deg_level(5-1);
+  for(int l=0; l<5-1; ++l) deg_level[l].reserve(g.n);
+  for(ul u=0; u<g.n; ++u) deg_level[0][u] = g.get_degOut(u);
+
+  for(ul u=0; u<g.n; ++u) {
+    Keep(u, v, deg_level, 1, {
+      Keep(*v, w, deg_level, 2, {
+        Keep(*w, x, deg_level, 3, {
+          for(auto y=g.neigh_beg(*x); y<g.neigh_beg(*x)+deg_level[3][*x]; ++y) {
+            c++;
+            t++;
+          }
+        })
+      })
+    })
+  }
+  Info("Found 5-cliques: "<< t << " \t| per edge: " << ((double) t) / m)
+  Info("Complexity: "<< c << " \t| per edge: " << ((double) c) / m)
+  return t;
+}
+
+
+// ull count_cliques_5_(Badjlist &g) {
+//   Info("Counting 5-cliques with modification")
+//   double m = g.e / g.edge_factor;
+//
+//   ull t = 0, c = 0;
+//   vector<int> is_neighOut(g.n, 0);
+//   vector<ul> deg_lu; deg_lu.reserve(g.n);
+//   for(ul u=0; u<g.n; ++u) deg_lu[u] = g.get_degOut(u);
+//   vector<ul> deg_lv(g.n, 0);
+//   vector<ul> deg_lw(g.n, 0);
+//   vector<ul> deg_lx(g.n, 0);
+//
+//
+//   for(ul u=0; u<g.n; ++u) {
+//     if(g.get_degOut(u) < 4) continue; // continue if deg u < k-1
+//     for(auto v=g.neigh_beg(u); v<g.neigh_end(u); ++v) is_neighOut[*v] ++;
+//     neigh_subset(g, is_neighOut, deg_lu, deg_lv, u, 1); // for all v, put its neighbours w at the beginning if they are neigh of u
+//     // for(auto v=g.neigh_beg(u); v<g.neigh_end(u); ++v) deg_lv[*v] = deg_lu[*v];
+//
+//     for(auto v=g.neigh_beg(u); v<g.neigh_end(u); ++v) {
+//       if(deg_lv[*v] < 3) continue; // continue if deg v < k-2
+//       for(auto w=g.neigh_beg(*v); w<g.neigh_beg(*v)+deg_lv[*v]; ++w) is_neighOut[*w] ++;
+//       neigh_subset(g, is_neighOut, deg_lv, deg_lw, *v, 2);
+//       // for(auto w=g.neigh_beg(*v); w<g.neigh_beg(*v)+deg_lv[*v]; ++w) deg_lw[*w] = deg_lv[*w];
+//
+//       for(auto w=g.neigh_beg(*v); w<g.neigh_beg(*v)+deg_lv[*v]; ++w) {
+//         if(deg_lw[*w] < 2) continue;
+//         for(auto x=g.neigh_beg(*w); x<g.neigh_beg(*w)+deg_lw[*w]; ++x) is_neighOut[*x] ++; // set array
+//         neigh_subset(g, is_neighOut, deg_lw, deg_lx, *w, 3);
+//
+//         for(auto x=g.neigh_beg(*w); x<g.neigh_beg(*w)+deg_lw[*w]; ++x) {
+//           for(auto y=g.neigh_beg(*x); y<g.neigh_beg(*x)+deg_lx[*x]; ++y) {
+//             c++;
+//             t++; // is neighbour of u, v, w (and x)
+//             // Info(u<<" "<<v<<" "<<w<<" "<<x<<" "<<y)
+//             // if(t > 1000000000) return t;
+//           }
+//         }
+//         for(auto x=g.neigh_beg(*w); x<g.neigh_beg(*w)+deg_lw[*w]; ++x) is_neighOut[*x] --; // reset array
+//       }
+//       for(auto w=g.neigh_beg(*v); w<g.neigh_beg(*v)+deg_lv[*v]; ++w) is_neighOut[*w] --; // reset array
+//     }
+//     for(auto v=g.neigh_beg(u); v<g.neigh_end(u); ++v) is_neighOut[*v] --; // reset array
+//   }
+//   Info("Found 5-cliques: "<< t << " \t| per edge: " << ((double) t) / m)
+//   Info("Complexity: "<< c << " \t| per edge: " << ((double) c) / m)
+//   return t;
+// }
+
+
+// ull count_cliques_5(const Badjlist &g) {
+//   Info("Counting 5-cliques")
+//   double m = g.e / g.edge_factor;
+//
+//   ull t = 0, c = 0;
+//   vector<int> is_neighOut(g.n, 0);
+//   for(ul u=0; u<g.n; ++u) {
+//     for(auto &v : g.neighOut_iter(u)) is_neighOut[v] ++; // set array
+//     for(auto &v : g.neighOut_iter(u)) {
+//       for(auto &w : g.neighOut_iter(v)) is_neighOut[w] ++; // set array
+//       for(auto &w : g.neighOut_iter(v)) {
+//         if(is_neighOut[w] < 2) continue;
+//         for(auto &x : g.neighOut_iter(w)) is_neighOut[x] ++; // set array
+//         for(auto &x : g.neighOut_iter(w)) {
+//           if(is_neighOut[x] < 3) continue;
+//           for(auto &y : g.neighOut_iter(x)) {
+//             c++;
+//             if(is_neighOut[y] == 3) t++; // Info(u<<" "<<v<<" "<<w<<" "<<x<<" "<<y)
+//           }
+//         }
+//         for(auto &x : g.neighOut_iter(w)) is_neighOut[x] --; // reset array
+//       }
+//       for(auto &w : g.neighOut_iter(v)) is_neighOut[w] --; // reset array
+//     }
+//     for(auto &v : g.neighOut_iter(u)) is_neighOut[v] --; // reset array
+//   }
+//   Info("Found 5-cliques: "<< t << " \t| per edge: " << ((double) t) / m)
+//   Info("Complexity: "<< c << " \t| per edge: " << ((double) c) / m)
+//   return t;
+// }

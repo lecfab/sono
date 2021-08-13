@@ -41,7 +41,9 @@ ul burden_permutation(const Badjlist &g);
 
 ull count_cliques(const Badjlist &g, ul k);
 ull count_cliques_parallel(const Badjlist &g, ul k, int p);
+ull count_cliques_parallel_(Badjlist &g, ul k, int p);
 ull count_cliques_parallel_edges(const Badjlist &g, const Edgelist &h, ul k, int p);
-ull count_cliques_5(const Badjlist &g);
+ull count_cliques_5(Badjlist &g);
+ull count_cliques_5_(Badjlist &g);
 
 #endif
